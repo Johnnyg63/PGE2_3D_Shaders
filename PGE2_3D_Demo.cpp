@@ -88,7 +88,8 @@ public:
    
     /* 3D Shaders*/
 	olc::Shade shader;  
-	olc::Effect fxNormal; // Normal Effect
+	olc::Effect fxNormal; // Normal Effect for 2D/3D rendering
+	olc::Effect fxSkyCube; // Sky Cube Effect for 3D rendering
 
     /* 3D Shaders*/
 
@@ -133,8 +134,16 @@ public:
         centreScreenPos.x = centreScreenPos.x / 2;
         centreScreenPos.y = centreScreenPos.y / 2;
 
-        // 3D Shaders
+		/*
+        * IMPORTANT: You must create an FX_NORMAL effect before you can use the shader system
+		* This is a built-in effect that is used to render the 2D/3D world.
+		* It is used to render the 3D world in a normal way, i.e. without any special effects.
+		* It also ensures that the shader system is ready to use, with existing HW3D objects.
+        */
         fxNormal = shader.MakeEffect(olc::fx::FX_NORMAL);
+
+		// Create a Sky Cube Effect, this is used to render the skybox  
+		fxSkyCube = shader.MakeEffect(olc::fx::FX_SKY_CUBE);
 
         // Called once at the start, so create things here
         return true;
@@ -144,6 +153,24 @@ public:
     {
         SetDrawTarget(nullptr);
         Clear(olc::BLUE);
+
+
+        /*
+		* It is recommended to start the shader system with the Sky Cube Effect
+		* As the Sky Cube Effect will reneder to the entire screen, you do not need to clear the screen
+		* The Sky Cube Effect does not use the Z-buffer, so it will not interfere with the 3D rendering, if ran before the 3D rendering.
+        */
+		shader.Start(&fxSkyCube); // Start the shader system with the Sky Cube Effect
+		
+
+		shader.End(); // End the shader system with the Sky Cube Effect
+
+        // Tell the shading system to use a shader
+        shader.Start(&fxNormal);
+
+		// Several PGE-like drawing commands are available. Here we clear the decal
+        shader.Clear();
+
         // New code:
         olc::vf3d  vf3Target = { 0,0,1 };
 
@@ -206,6 +233,8 @@ public:
         HW3D_DrawObject((matWorld * matScale).m, decLandScape, meshMountain.layout, meshMountain.pos, meshMountain.uv, meshMountain.col);
 
         // End new code
+        // Stop shading
+		shader.End();
 
         UpdateCamByUserInput(fElapsedTime);
 
