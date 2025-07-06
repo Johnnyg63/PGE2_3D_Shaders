@@ -125,12 +125,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="PGE2_3D_Demo.cpp" />
     <ClCompile Include="PGE2_3D_Shaders.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="olcPGEX_3D_Shaders.h" />
     <ClInclude Include="olcPGEX_TransformedView.h" />
     <ClInclude Include="olcPixelGameEngine.h" />
+    <ClInclude Include="olcUTIL_Hardware3D.h" />
+    <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="assets\images\body3d.png" />

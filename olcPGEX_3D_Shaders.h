@@ -98,7 +98,7 @@ namespace olc
 
 #if defined(__arm__) || defined(OLC_PLATFORM_EMSCRIPTEN)
 #define SHADER_HEADER "#version 300 es         \n" \
-                              "precision mediump float;\n"
+                      "precision mediump float;\n"
 #else
 #define SHADER_HEADER "#version 330 core       \n"
 #endif
