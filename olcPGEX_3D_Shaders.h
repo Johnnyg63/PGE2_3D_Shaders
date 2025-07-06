@@ -308,7 +308,15 @@ namespace olc
 		void DrawPartialDecal(const olc::vf2d& pos, olc::Decal* decal, const olc::vf2d& source_pos, const olc::vf2d& source_size, const olc::vf2d& scale = { 1.0f,1.0f }, const olc::Pixel& tint = olc::WHITE);
 		void DrawPartialDecal(const olc::vf2d& pos, const olc::vf2d& size, olc::Decal* decal, const olc::vf2d& source_pos, const olc::vf2d& source_size, const olc::Pixel& tint = olc::WHITE);
 		void DrawPolygonDecal(olc::Decal* decal, const std::vector<olc::vf2d>& pos, const std::vector<olc::vf2d>& uv, const std::vector<olc::Pixel>& colours);
-
+		// Draws a 3D Mesh structure (as defined by olc::DecalStructure)
+		void HW3D_DrawObject(
+			const std::array<float, 16>& matModelView,
+			olc::Decal* decal,
+			const olc::DecalStructure layout,
+			const std::vector<std::array<float, 4>>& pos,
+			const std::vector<std::array<float, 2>>& uv,
+			const std::vector<olc::Pixel>& col,
+			const olc::Pixel tint = olc::WHITE);
 
 
 	public: // Advanced Interface
@@ -945,6 +953,26 @@ namespace olc
 
 		locBufferData(0x8892, sizeof(sOmniVertex) * decal.points, pVertexMem, 0x88E0);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, decal.points);
+	}
+
+	void Shade::HW3D_DrawObject(const std::array<float, 16>& matModelView, olc::Decal* decal, const olc::DecalStructure layout, const std::vector<std::array<float, 4>>& pos, const std::vector<std::array<float, 2>>& uv, const std::vector<olc::Pixel>& col, const olc::Pixel tint)
+	{
+		SetSourceDecal(decal, 0);
+
+		GPUTask task;
+		task.decal = decal;
+		//task.mode = nDecalMode;
+		task.structure = layout;
+		task.depth = true; // bHW3DDepthTest;
+		//task.cull = nHW3DCullMode;
+		task.mvp = matModelView;
+		task.tint = tint;
+		task.vb.resize(pos.size());
+
+		for (size_t i = 0; i < pos.size(); i++)
+			task.vb[i] = { pos[i][0], pos[i][1], pos[i][2], 1.0f, uv[i][0], uv[i][1], col[i].n };
+
+		olc::renderer->DoGPUTask(task);
 	}
 }
 

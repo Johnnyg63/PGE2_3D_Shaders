@@ -7,6 +7,9 @@
 #define OLC_PGEX_3D_SHADERS
 #include "olcPGEX_3D_Shaders.h"
 
+#define OLC_PGEX_TRANSFORMEDVIEW
+#include "olcPGEX_TransformedView.h"
+
 // Override base class with your custom functionality
 class Demo3D : public olc::PixelGameEngine
 {
@@ -21,6 +24,8 @@ public:
     olc::mf4d matView;
     olc::mf4d matScale;
     olc::mf4d matProject;
+    olc::mf4d mSkyCube;
+
     olc::utils::hw3d::mesh meshMountain;
     olc::Renderable gfx1;
 
@@ -33,6 +38,10 @@ public:
     olc::vf3d vf3dWorldPosition = { 0.0f, 0.0f, 0.0f };     // vf3d World Position
     olc::vf3d vf3dWorldOffset = { 0.0f, 1.0f, 0.0f };       // vf3d World Offset
     olc::vf3d vf3dWorldScale = { 30.0f, 30.0f, 30.0f };       // vf3d World Scale
+
+    olc::vf3d vf3dSkyCubeScale = { 600.0f, 600.0f, 600.0f };     // vf3d SkyCube Scale (in sort its Size)
+    olc::vf3d vf3dSkyCubeLocation = { 0.0f, 0.0f, 0.0f };       // vf3d SkyCube Location 
+    olc::vf3d vf3dSkyCubeOffset = { -200.0f, -300.0f, -200.0f }; // vf3d SkyCube Offset
 
     float fYaw = 0.0f;          // FPS Camera rotation in X plane
     float fYawRoC = 1.0f;       // fYaw Rate of Change Look Up/Down
@@ -68,6 +77,9 @@ public:
 
     /* Renders */
     olc::Renderable renTestCube;
+    olc::Renderable gfxNormal;
+	olc::Renderable gfxSkyCube;
+    olc::Renderable renSkyCube;
     /* End Renders */
 
 
@@ -79,6 +91,7 @@ public:
 
     // Sanity Cube
     olc::utils::hw3d::mesh matSanityCube;
+    olc::utils::hw3d::mesh matSkyCube;
 
     // Manage Touch points
     olc::vi2d centreScreenPos;
@@ -93,9 +106,14 @@ public:
 
     /* 3D Shaders*/
 
+    olc::TransformedView tv;
+
 public:
     bool OnUserCreate() override
     {
+        tv.Initialise({ ScreenWidth(), ScreenHeight() }, { 1.0f, 1.0f });
+        gfxNormal.Create(ScreenWidth(), ScreenHeight());
+        gfxSkyCube.Create(ScreenWidth(), ScreenHeight());
         // Called once at the start, so create things here
         float S = 1.0f / (tan(3.14159f * 0.25f));
         float f = 1000.0f;
@@ -129,6 +147,10 @@ public:
         sprLandScape = new olc::Sprite("./assets/images/Master_Layout_Texture.png");
         decLandScape = new olc::Decal(sprLandScape);
 
+		// Create other matrices
+        matSkyCube = olc::utils::hw3d::CreateCube(olc::utils::hw3d::LEFT_CROSS_TEXTURE_RECT_MAP);
+
+        renSkyCube.Load("assets/images/TestLarge.jpg");
 
         centreScreenPos = GetScreenSize();
         centreScreenPos.x = centreScreenPos.x / 2;
@@ -154,29 +176,13 @@ public:
         SetDrawTarget(nullptr);
         Clear(olc::BLUE);
 
-
-        /*
-		* It is recommended to start the shader system with the Sky Cube Effect
-		* As the Sky Cube Effect will reneder to the entire screen, you do not need to clear the screen
-		* The Sky Cube Effect does not use the Z-buffer, so it will not interfere with the 3D rendering, if ran before the 3D rendering.
-        */
-		shader.Start(&fxSkyCube); // Start the shader system with the Sky Cube Effect
-		
-
-		shader.End(); // End the shader system with the Sky Cube Effect
-
-        // Tell the shading system to use a shader
-        shader.Start(&fxNormal);
-
-		// Several PGE-like drawing commands are available. Here we clear the decal
-        shader.Clear();
-
         // New code:
         olc::vf3d  vf3Target = { 0,0,1 };
 
-        olc::mf4d mRotationX, mRotationY, mRotationZ;  // Rotation Matrices
+        olc::mf4d mRotationX, mRotationY, mRotationZ;   // Rotation Matrices
         olc::mf4d mPosition, mCollision;                // Position and Collision Matrices
-        olc::mf4d mMovement, mOffset, mScale;                   // Movement and Offset Matrices
+        olc::mf4d mMovement, mOffset, mScale;           // Movement and Offset Matrices
+		olc::mf4d mSkyCubeTrans, mSkyCubeScale;         // Syke Cube Translation and Scale Matrices
 
 
         // Set up scaling
@@ -201,7 +207,14 @@ public:
         // Manage forward / backwards
         vf3dForward = vf3dLookDir * (fForwardRoC * fElapsedTime);
 
-        ClearBuffer(olc::CYAN, true); // Clear the buffer folks
+        // SkyCube
+        mSkyCubeTrans.translate(vf3dSkyCubeOffset + Cam3D.GetPosition());
+        mSkyCubeScale.scale(vf3dSkyCubeScale);
+
+        mSkyCube = mSkyCubeTrans * mSkyCubeScale;
+
+
+        //ClearBuffer(olc::CYAN, true); // Clear the buffer folks
 
 
         HW3D_Projection(Cam3D.GetProjectionMatrix().m);
@@ -222,6 +235,24 @@ public:
             meshMountain.col[i + 1] = olc::PixelF(illum, illum, illum, 1.0f);
             meshMountain.col[i + 2] = olc::PixelF(illum, illum, illum, 1.0f);
         }*/
+
+        /*
+        * It is recommended to start the shader system with the Sky Cube Effect
+        * As the Sky Cube Effect will reneder to the entire screen, you do not need to clear the screen
+        * The Sky Cube Effect does not use the Z-buffer, so it will not interfere with the 3D rendering, if ran before the 3D rendering.
+        */
+        shader.SetTargetDecal(gfxSkyCube.Decal(), 0); // Set the target decal for the shader system
+        shader.Start(&fxSkyCube); // Start the shader system with the Sky Cube Effect
+
+        // Draw Skycube first
+        HW3D_DrawObject((matWorld * mSkyCube).m, renSkyCube.Decal(), matSkyCube.layout, matSkyCube.pos, matSkyCube.uv, matSkyCube.col);
+
+
+        shader.End(); // End the shader system with the Sky Cube Effect
+
+        shader.SetTargetDecal(gfxNormal.Decal(), 0); // Set the target decal for the shader system
+        // Tell the shading system to use a shader
+        shader.Start(&fxNormal);
 
         // Draw a line
         HW3D_DrawLine((matWorld).m, { 0.0f, 0.0f, 0.0f }, { 100.0f, 100.0f, 100.0f }, olc::RED);

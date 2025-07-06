@@ -124,7 +124,7 @@
 //		shader.SetTargetDecal(gfxNormalBouncers.Decal(), 0);
 //		// Tell the shading system to use a shader
 //		shader.Start(&fxNormal);
-//		// Several PGE-like drawing commands are available. Here we clear the decal
+//		// Several PGE-like drawing commands are available. Here we clear the decalgfxNormalBouncers
 //		shader.Clear();
 //
 //		// Update Locations & Render "Stock" Bouncers
