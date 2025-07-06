@@ -237,7 +237,17 @@ namespace olc
 			1,
 		};
 
-
+		static EffectConfig FX_SKY_CUBE =
+		{
+			DEFAULT_VS,
+			"void main()                                                      \n"
+			"{                                                                \n"
+			"	vec4 o = texture(tex1, xUV1) * xCol;                          \n"
+			"	pix_out = vec4(o.rgb, 1.0);                                   \n"
+			"}                                                                \n",
+			1,
+			1
+		};
 
 	}
 
@@ -489,13 +499,19 @@ namespace olc
 		// Construct Vertex Shader
 		std::string sVertexShader =
 			SHADER_HEADER
-			"layout(location = 0) in vec3 inPos; \n"
+			"layout(location = 0) in vec4 inPos; \n"
 			"layout(location = 1) in vec4 inCol; \n";
 
 		for (size_t i = 0; i < premade.nInputs; i++)
 		{
 			sVertexShader.append("layout(location = " + std::to_string(2 + i) + ") in vec2 inUV" + std::to_string(1 + i) + "; \n");
 		}
+		
+		// Support for 3D Shaders
+		sVertexShader.append("uniform mat4 mvp;\n");
+		sVertexShader.append("uniform int is3d;\n");
+		sVertexShader.append("uniform vec4 tint;\n");
+		// End Support for 3D Shaders
 
 		for (size_t i = 0; i < premade.nInputs; i++)
 		{

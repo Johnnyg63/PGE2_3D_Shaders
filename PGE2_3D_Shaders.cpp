@@ -35,6 +35,8 @@ public:
 	olc::Effect fxThreshold;
 	olc::Effect fxSobel;
 
+	olc::Effect fxSkyCube;
+
 	// Pixel shading is all done in Decal land, so for this demo we render to several decals with
 	// different shading, and composite the result
 	olc::Renderable gfxNormalBouncers;
@@ -47,6 +49,8 @@ public:
 	olc::Renderable gfxEffect3;
 	olc::Renderable gfxEffect4;
 	olc::Renderable gfxEffect5;
+
+	olc::Renderable gfxSkyCube;
 
 
 	size_t nBouncers = 50;
@@ -81,6 +85,10 @@ public:
 		fxThreshold = shader.MakeEffect(olc::fx::FX_THRESHOLD);
 		fxSobel = shader.MakeEffect(olc::fx::FX_SOBEL);
 
+		//fxSkyCube = shader.MakeEffect(olc::fx::FX_SKY_CUBE);
+
+
+		//fxNormal = shader.MakeEffect(olc::fx::FX_NORMAL);
 
 
 

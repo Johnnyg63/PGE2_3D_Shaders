@@ -129,7 +129,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="olcPGEX_3D_Shaders.h" />
-    <ClInclude Include="olcPGEX_Shaders.h" />
     <ClInclude Include="olcPGEX_TransformedView.h" />
     <ClInclude Include="olcPixelGameEngine.h" />
   </ItemGroup>
