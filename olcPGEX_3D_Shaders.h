@@ -104,18 +104,26 @@ namespace olc
 #endif
 
 
-#define DEFAULT_VS "void main()                                             \n" \
-					   "{                                                       \n" \
-					   "	float p = 1.0 / inPos.z;                            \n" \
-					   "	gl_Position = p * vec4(inPos.x, inPos.y, 0.0, 1.0); \n" \
-					   "	xUV1 = p * inUV1;                                   \n" \
-					   "	xCol = inCol;                                       \n" \
-					   "}                                                       \n"
+#define DEFAULT_VS "void main()																\n" \
+					   "{																	\n" \
+                       "	if(is3d!=0) 													\n" \
+                       "	{																\n" \
+                       "		gl_Position = mvp * vec4(inPos.x, inPos.y, inPos.z, 1.0);	\n" \
+                       "		xUV1 = inUV1;												\n" \
+                       "	}																\n" \
+                       "	else															\n" \
+                       "	{																\n" \
+					   "		float p = 1.0 / inPos.z;									\n" \
+					   "		gl_Position = p * vec4(inPos.x, inPos.y, 0.0, 1.0);			\n" \
+					   "		xUV1 = p * inUV1;											\n" \
+					   "		xCol = inCol;												\n" \
+					   "	}																\n" \
+					   "}																	\n"
 
-#define DEFAULT_PS "void main()                                            \n" \
-					   "{                                                      \n" \
-					   "	pix_out = texture(tex1, xUV1) * xCol;              \n" \
-					   "}                                                      \n"
+#define DEFAULT_PS "void main()																\n" \
+					   "{																	\n" \
+					   "	pix_out = texture(tex1, xUV1) * xCol;							\n" \
+					   "}																	\n"
 
 		static EffectConfig FX_NORMAL =
 		{
